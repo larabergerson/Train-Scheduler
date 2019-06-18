@@ -1,10 +1,9 @@
-// Steps to complete:
+// Steps:
 
 // 1. Launch Firebase
 // 2. Add button for new train -> update the html + database
 // 3. Create a way to retrieve trains from database.
 // 4. Calculate the next train with frequency
-//    Then use moment.js formatting to set difference in months.
 
 // 1. Launch Firebase
 var firebaseConfig = {
@@ -14,35 +13,35 @@ var firebaseConfig = {
   projectId: "train-scheduler-hw-6326f",
   storageBucket: "train-scheduler-hw-6326f.appspot.com",
   messagingSenderId: "1038787017041",
-  appId: "1:1038787017041:web:6389b369b8b212ed"
+  appId: "1:1038787017041:web:542f6b8aa268aa1f"
 };
 
 firebase.initializeApp(firebaseConfig);
 
 var database = firebase.database();
 
-// 2. Button for adding Employees
-$("#add-train-btn").on("click", function(event) {
+// 2. Button for adding train
+$("#train-btn").on("click", function(event) {
   event.preventDefault();
 
   // Grabs user input
   var trainName = $("#train-name-input")
     .val()
     .trim();
-  var destinationPlace = $("#destionation-input")
+  var destinationPlace = $("#destination-input")
     .val()
     .trim();
   var startTime = moment(
     $("#start-input")
       .val()
       .trim(),
-    "MM/DD/YYYY"
+    "HHmm"
   ).format("X");
   var frequencySet = $("#frequency-input")
     .val()
     .trim();
 
-  // Creates local "temporary" object for holding employee data
+  // Creates local "temporary" object for holding train data
   var newTrain = {
     name: trainName,
     destination: destinationPlace,
@@ -65,36 +64,27 @@ $("#add-train-btn").on("click", function(event) {
   $("#train-name-input").val("");
   $("#destination-input").val("");
   $("#start-input").val("");
-  $("#frequencyinput").val("");
+  $("#frequency-input").val("");
 });
 
-// 3. Create Firebase event for adding employee to the database and a row in the html when a user adds an entry
+// 3. Create Firebase event for adding train to the database and a row in the html when a user adds an entry
 database.ref().on("child_added", function(childSnapshot) {
   console.log(childSnapshot.val());
 
   // Store everything into a variable.
   var trainName = childSnapshot.val().name;
   var destinationPlace = childSnapshot.val().destionation;
-  var startTime = childSnapshot.val().startTime;
+  var startTime = childSnapshot.val().start;
   var frequencySet = childSnapshot.val().frequency;
 
-  // Employee Info
+  // Check console log - train Info
   console.log(trainName);
   console.log(destinationPlace);
   console.log(startTime);
   console.log(frequencySet);
 
-  // Prettify the employee start
-  var trainStartPretty = moment.unix(startTime).format("MM/DD/YYYY");
-
-  // Calculate the months worked using hardcore math
-  // To calculate the months worked
-  // var empMonths = moment().diff(moment(empStart, "X"), "months");
-  // console.log(empMonths);
-
-  // Calculate the total billed rate
-  // var empBilled = empMonths * empRate;
-  // console.log(empBilled);
+  // Prettify start
+  var trainStartPretty = moment.unix(startTime).format("HHmm");
 
   // Create the new row
   var newRow = $("<tr>").append(
@@ -102,10 +92,34 @@ database.ref().on("child_added", function(childSnapshot) {
     $("<td>").text(destinationPlace),
     $("<td>").text(startTime),
     $("<td>").text(frequencySet)
-    // $("<td>").text(empRate),
-    // $("<td>").text(empBilled)
   );
 
   // Append the new row to the table
   $("#schedule-table > tbody").append(newRow);
 });
+
+// Change year so first train comes before now - Help from sung for below code:
+var firstTrain = moment(childSnapshot.val().firstTrain, "hh:mm").subtract(
+  1,
+  "minutes"
+);
+console.log(firstTrain);
+
+// Difference time between the current and firstTrain
+var diffTime = moment().diff(moment(newTrain), "minutes");
+var remainder = diffTime % frequency;
+console.log(diffTime);
+console.log(remainder);
+
+// Minutes until next train
+var minsAway = frequency - remainder;
+console.log(minsAway);
+
+// Add minsAway to get the next train time
+var nextTrain = moment().add(minsAway, "minutes");
+nextTrain = moment(nextTrain).format("hh:mm");
+console.log(nextTrain);
+
+//current time in military time format//
+var currentTime = moment().format("HHmm");
+console.log(currentTime);
