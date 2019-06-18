@@ -54,7 +54,7 @@ $("#train-btn").on("click", function(event) {
 
   // Logs everything to console
   console.log(newTrain.name);
-  console.log(newTrain.destionation);
+  console.log(newTrain.destination);
   console.log(newTrain.startTime);
   console.log(newTrain.frequency);
 
@@ -73,7 +73,7 @@ database.ref().on("child_added", function(childSnapshot) {
 
   // Store everything into a variable.
   var trainName = childSnapshot.val().name;
-  var destinationPlace = childSnapshot.val().destionation;
+  var destinationPlace = childSnapshot.val().destination;
   var startTime = childSnapshot.val().start;
   var frequencySet = childSnapshot.val().frequency;
 
@@ -84,14 +84,16 @@ database.ref().on("child_added", function(childSnapshot) {
   console.log(frequencySet);
 
   // Prettify start
-  var trainStartPretty = moment.unix(startTime).format("HHmm");
+  var startTimePretty = moment.unix(startTime).format("HH:mm");
+  console.log(startTimePretty);
 
   // Create the new row
   var newRow = $("<tr>").append(
     $("<td>").text(trainName),
     $("<td>").text(destinationPlace),
     $("<td>").text(startTime),
-    $("<td>").text(frequencySet)
+    $("<td>").text(frequencySet),
+    $("<td>").text(minsAway)
   );
 
   // Append the new row to the table
@@ -99,14 +101,14 @@ database.ref().on("child_added", function(childSnapshot) {
 });
 
 // Change year so first train comes before now - Help from sung for below code:
-var firstTrain = moment(childSnapshot.val().firstTrain, "hh:mm").subtract(
+var firstTrain = moment(childSnapshot.val().firstTrain, "hhmm").subtract(
   1,
   "minutes"
 );
 console.log(firstTrain);
 
 // Difference time between the current and firstTrain
-var diffTime = moment().diff(moment(newTrain), "minutes");
+var diffTime = moment().diff(moment(firstTrain), "minutes");
 var remainder = diffTime % frequency;
 console.log(diffTime);
 console.log(remainder);
